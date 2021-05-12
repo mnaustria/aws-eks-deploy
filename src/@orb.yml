@@ -13,3 +13,55 @@ display:
 # If your orb requires other orbs, you can import them like this. Otherwise remove the "orbs" stanza.
 # orbs:
 #  hello: circleci/hello-build@0.0.5
+commands:
+  deploy-to-eks-cluster:
+    parameters:
+      bastion_host:
+        type: string
+        description: "The hostname or IP of your bastion host"
+      jumphost:
+        type: string
+        description: "The hostname or IP of your jump host"
+      git-repository:
+        type: string
+        description: "The URL of your GitHub"
+        default: ${CIRCLE_REPOSITORY_URL}
+      git-branch:
+        type: string
+        description: "The name of the Git branch currently being built."
+        default: ${CIRCLE_BRANCH}
+      git-project:
+        type: string
+        description: "The name of the repository of the current project."
+        default: ${CIRCLE_PROJECT_REPONAME}
+      build-number:
+        type: string
+        description: "The number of the current job. Job numbers are unique for each job."
+        default: ${CIRCLE_BUILD_NUM}
+      cluster-name:
+        type: string
+        description: "EKS Cluster Name"
+      namespace:
+        type: string
+        description: "Kubernetes Namespace"
+      repository-name:
+        type: string
+        description: "ECR Repository Name"
+      release-name:
+        type: string
+        description: "helm release name"
+      chart:
+        type: string
+        description: "helm chart location"
+      values-to-override:
+        type: string
+        description: "Override values in a chart using the --set flag of the helm install command. Format: key1=val1,key2=val2"
+    steps:
+      - run: 
+          name: Git Checkout
+          command: |
+            ssh -o StrictHostKeyChecking=no ec2-user@<<parameters.bastion_host>> -t ssh ec2-user@<<parameters.jumphost>> "./checkout.sh '<<parameters.git-repository>>' '<<parameters.git-branch>>' '<<parameters.git-project>>' '<<parameters.build-number>>'"
+      - run: 
+          name: Kubernetes Deployment
+          command: |
+            ssh -o StrictHostKeyChecking=no ec2-user@<<parameters.bastion_host>> -t ssh ec2-user@<<parameters.jumphost>> "./deploy.sh '<<parameters.cluster-name>>' '<<parameters.namespace>>' '<<parameters.repository-name>>' '<<parameters.release-name>>' '<<parameters.chart>>' '<<parameters.git-project>>' '<<parameters.git-branch>>' '<<parameters.build-number>>' '<<parameters.values-to-override>>'"
