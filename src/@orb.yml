@@ -57,11 +57,11 @@ commands:
         type: string
         description: "Override values in a chart using the --set flag of the helm install command. Format: key1=val1,key2=val2"
     steps:
-      - run: 
+      - run:
           name: Git Checkout
           command: |
             ssh -o StrictHostKeyChecking=no ec2-user@<<parameters.bastion_host>> -t ssh ec2-user@<<parameters.jumphost>> "./checkout.sh '<<parameters.git-repository>>' '<<parameters.git-branch>>' '<<parameters.git-project>>' '<<parameters.build-number>>'"
-      - run: 
+      - run:
           name: Kubernetes Deployment
           command: |
             ssh -o StrictHostKeyChecking=no ec2-user@<<parameters.bastion_host>> -t ssh ec2-user@<<parameters.jumphost>> "./deploy.sh '<<parameters.cluster-name>>' '<<parameters.namespace>>' '<<parameters.repository-name>>' '<<parameters.release-name>>' '<<parameters.chart>>' '<<parameters.git-project>>' '<<parameters.git-branch>>' '<<parameters.build-number>>' '<<parameters.values-to-override>>'"
